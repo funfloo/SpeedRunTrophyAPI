@@ -36,7 +36,7 @@ const User = sequelize.define('User', {
   timestamps: false, // Pas de colonnes createdAt/updatedAt
 });
 
-// Ici, on pourrait définir d'autres modèles (Game, Trophy, etc.) si nécessaire
+// Définition du modèle Game (table 'games')
 const Game = sequelize.define('Game', {
   id: { 
     type: DataTypes.INTEGER, 
@@ -52,6 +52,7 @@ const Game = sequelize.define('Game', {
   timestamps: false,
 });
 
+// Définition du modèle Trophy (table 'trophies')
 const Trophy = sequelize.define('Trophy', {
   id: { 
     type: DataTypes.INTEGER, 
@@ -83,8 +84,41 @@ Game.hasMany(Trophy, {
   onUpdate: 'CASCADE' 
 });
 
-// On regroupe les modèles pour pouvoir les transmettre au module de fonctions
-const models = { User, Game, Trophy };
+// Définition du modèle UserTrophy (table 'user_trophy')
+const UserTrophy = sequelize.define('UserTrophy', {
+  user_id: { 
+    type: DataTypes.INTEGER, 
+    primaryKey: true, 
+    allowNull: false 
+  },
+  trophy_id: { 
+    type: DataTypes.INTEGER, 
+    primaryKey: true, 
+    allowNull: false 
+  },
+  obtained_date: { 
+    type: DataTypes.DATE, 
+    allowNull: true 
+  },
+}, {
+  tableName: 'user_trophy',
+  timestamps: false,
+});
+
+// Associations Many-to-Many entre User et Trophy via UserTrophy
+User.belongsToMany(Trophy, { 
+  through: UserTrophy, 
+  foreignKey: 'user_id', 
+  otherKey: 'trophy_id'
+});
+Trophy.belongsToMany(User, { 
+  through: UserTrophy, 
+  foreignKey: 'trophy_id', 
+  otherKey: 'user_id'
+});
+
+// Regroupement des modèles dans un objet pour les transmettre aux fonctions
+const models = { User, Game, Trophy, UserTrophy };
 
 // Importation du module de fonctions qui ajoute tous les endpoints à notre app
 require('./fonctions')(app, models);
